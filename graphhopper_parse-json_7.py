@@ -11,7 +11,14 @@ PRECIOS_COMBUSTIBLE = {
     "97": 1380.00,
     "diesel": 1050.00
 }
-RENDIMIENTO_PROMEDIO_KM_L = 12.0  # Consumo promedio: 12 km por litro
+
+# Rendimiento promedio por categoría de vehículo (km por litro)
+RENDIMIENTO_VEHICULO = {
+    "citycar": 16.0,
+    "sedan": 12.0,
+    "suv": 9.5,
+    "4x4": 7.5
+}
 
 def geocoding(location, key):
     while location == "":
@@ -53,23 +60,34 @@ def geocoding(location, key):
 
 while True:
     print("\n+++++++++++++++++++++++++++++++++++++++++++++")
-    print("Vehicle profiles available on Graphhopper:")
+    print("Perfil de viaje en Graphhopper:")
     print("+++++++++++++++++++++++++++++++++++++++++++++")
     print("car, bike, foot")
     print("+++++++++++++++++++++++++++++++++++++++++++++")
     profile = ["car", "bike", "foot"]
-    vehicle = input("Enter a vehicle profile from the list above: ").strip().lower()
+    vehicle = input("Ingrese el perfil de viaje: ").strip().lower()
     
     if vehicle == "quit" or vehicle == "q":
         break
     elif vehicle not in profile:
         vehicle = "car"
-        print("No valid vehicle profile was entered. Using the car profile.")
+        print("Perfil no válido. Se usará 'car' por defecto.")
 
-    # Selección de tipo de bencina/combustible (solo si el vehículo es automóvil)
+    # Selección de categoría de vehículo y combustible si es automóvil
     tipo_bencina = "95"
+    cat_vehiculo = "sedan"
+    rendimiento = RENDIMIENTO_VEHICULO["sedan"]
+
     if vehicle == "car":
-        print("\nTipos de combustible disponibles: 93, 95, 97, diesel")
+        print("\nCategorías disponibles: citycar, sedan, suv, 4x4")
+        cat_input = input("Seleccione categoría de automóvil: ").strip().lower()
+        if cat_input in RENDIMIENTO_VEHICULO:
+            cat_vehiculo = cat_input
+            rendimiento = RENDIMIENTO_VEHICULO[cat_input]
+        else:
+            print("Categoría no válida. Se usará 'sedan' por defecto.")
+
+        print("Tipos de combustible disponibles: 93, 95, 97, diesel")
         bencina_input = input("Seleccione tipo de bencina: ").strip().lower()
         if bencina_input in PRECIOS_COMBUSTIBLE:
             tipo_bencina = bencina_input
@@ -104,19 +122,20 @@ while True:
             min = int(paths_data["paths"][0]["time"] / 1000 / 60 % 60)
             hr = int(paths_data["paths"][0]["time"] / 1000 / 60 / 60)
             
-            # Requerimiento: Distancia en km con 2 decimales
+            # Distancia en km con 2 decimales
             print("Distance Traveled: {0:.2f} km ({1:.2f} miles)".format(km, miles))
             print("Trip Duration: {0:02d}:{1:02d}:{2:02d}".format(hr, min, sec))
             
-            # Requerimiento: Cálculo del precio del viaje con 2 decimales
+            # Cálculo del costo por categoría y combustible
             if vehicle == "car":
                 precio_litro = PRECIOS_COMBUSTIBLE[tipo_bencina]
-                litros_consumidos = km / RENDIMIENTO_PROMEDIO_KM_L
+                litros_consumidos = km / rendimiento
                 costo_viaje = litros_consumidos * precio_litro
-                print("Tipo de Bencina Seleccionada: {0}".format(tipo_bencina))
+                print("Categoría de Vehículo: {0} (Rendimiento: {1} km/L)".format(cat_vehiculo.upper(), rendimiento))
+                print("Tipo de Bencina: {0} octanos".format(tipo_bencina))
                 print("Precio estimado del viaje: ${0:.2f} CLP (Consumo: {1:.2f} L)".format(costo_viaje, litros_consumidos))
             else:
-                print("Precio estimado del viaje: $0.00 CLP (Vehículo no motorizado)")
+                print("Precio estimado del viaje: $0.00 CLP (Sin consumo de combustible)")
 
             print("=================================================")
             for each in range(len(paths_data["paths"][0]["instructions"])):
