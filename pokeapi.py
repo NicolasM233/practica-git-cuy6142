@@ -1,15 +1,33 @@
 import requests
 
-nombre = "pikachu"
-url = f"https://pokeapi.co/api/v2/pokemon/{nombre}"
+while True:
+    pokemon = input("\nIngrese el nombre de un Pokémon (o 'q' para salir): ").strip().lower()
+    
+    if pokemon == "q" or pokemon == "quit":
+        print("Saliendo de la aplicación.")
+        break
+        
+    if not pokemon:
+        print("Por favor, ingrese un nombre válido.")
+        continue
 
-respuesta = requests.get(url, timeout=10)
-print(f"Código HTTP: {respuesta.status_code}")
-respuesta.raise_for_status()
-datos = respuesta.json()
+    url = f"https://pokeapi.co/api/v2/pokemon/{pokemon}"
+    respuesta = requests.get(url)
 
-print(f"Nombre: {datos['name'].title()}")
-print(f"Peso: {datos['weight']} hectogramos")
-print("Habilidades:")
-for habilidad in datos["abilities"]:
-    print(f" - {habilidad['ability']['name']}")
+    if respuesta.status_code == 200:
+        datos = respuesta.json()
+        print(f"\n=========================================")
+        print(f"INFORMACIÓN DE: {datos['name'].upper()}")
+        print(f"=========================================")
+        print(f"ID: {datos['id']}")
+        print(f"Altura: {datos['height']} decímetros")
+        print(f"Peso: {datos['weight']} hectogramos")
+        
+        habilidades = [h['ability']['name'] for h in datos['abilities']]
+        print(f"Habilidades: {', '.join(habilidades)}")
+        
+        tipos = [t['type']['name'] for t in datos['types']]
+        print(f"Tipo(s): {', '.join(tipos)}")
+        print(f"=========================================")
+    else:
+        print(f"Error {respuesta.status_code}: No se encontró el Pokémon '{pokemon}'. Intente de nuevo.")
